@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClaimGuard: Claim fraud screening for insurers</title>
+<meta name="description" content="ClaimGuard reads every document and photo in an insurance claim, checks them against each other and against policy rules, and gives the adjuster a risk assessment with the evidence behind it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfaf8;
+    --ink: #1c1d1f;
+    --body: #3d3f43;
+    --muted: #6e7076;
+    --rule: #e3e1dc;
+    --panel: #ffffff;
+    --accent: #1f3a5f;
+    --flag: #9a3b2e;
+    --ok: #3d6b4f;
+    --warn: #8a6a1f;
+    --measure: 1080px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--body);
+    font: 400 17px/1.65 "IBM Plex Sans", system-ui, sans-serif;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 24px; }
+
+  /* header */
+  .top { border-bottom: 1px solid var(--rule); }
+  .top .wrap { display: flex; align-items: center; height: 64px; gap: 32px; }
+  .mark { font-weight: 600; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; font-size: 17px; }
+  .top nav { display: flex; gap: 28px; margin-left: auto; font-size: 15px; }
+  .top nav a { color: var(--muted); text-decoration: none; }
+  .top nav a:hover { color: var(--ink); }
+  .top nav a.cta { color: var(--ink); font-weight: 500; }
+  @media (max-width: 720px) { .top nav a:not(.cta) { display: none; } }
+
+  /* type */
+  h1, h2, h3 { color: var(--ink); font-weight: 500; }
+  h1 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 24px;
+    max-width: 18ch;
+  }
+  h2 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: clamp(26px, 3.2vw, 34px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0 0 20px;
+    max-width: 22ch;
+  }
+  h3 { font-size: 17px; font-weight: 600; margin: 0 0 6px; }
+  .eyebrow {
+    font: 400 13px/1 "IBM Plex Mono", ui-monospace, monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 18px;
+  }
+  .lede { font-size: 20px; line-height: 1.55; color: var(--body); max-width: 40ch; margin: 0 0 36px; }
+  p { margin: 0 0 16px; }
+  .prose { max-width: 62ch; }
+
+  /* buttons */
+  .actions { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 4px; font-size: 15px; font-weight: 500;
+    text-decoration: none; border: 1px solid var(--ink);
+  }
+  .btn.primary { background: var(--ink); color: var(--bg); }
+  .btn.primary:hover { background: #000; }
+  .btn.secondary { color: var(--ink); background: transparent; }
+  .btn.secondary:hover { background: #f0eee9; }
+
+  /* sections */
+  section { padding: 96px 0; border-bottom: 1px solid var(--rule); }
+  .hero { padding: 96px 0 88px; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px; align-items: start; }
+  @media (max-width: 920px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+  /* specimen: an excerpt of a real assessment */
+  .specimen {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+    font-size: 14px; line-height: 1.5; box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  }
+  .specimen header {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    padding: 16px 20px; border-bottom: 1px solid var(--rule);
+  }
+  .specimen header b { color: var(--ink); font-weight: 600; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px; color: var(--muted); }
+  .specimen .score { display: flex; align-items: baseline; gap: 14px; padding: 18px 20px 6px; }
+  .specimen .score strong { font: 500 40px/1 "IBM Plex Serif", Georgia, serif; color: var(--ink); }
+  .tag { font: 500 11.5px/1 "IBM Plex Sans", sans-serif; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px; border-radius: 3px; border: 1px solid currentColor; }
+  .tag.flag { color: var(--flag); } .tag.ok { color: var(--ok); } .tag.warn { color: var(--warn); }
+  .specimen .summary { padding: 6px 20px 16px; color: var(--body); }
+  .specimen ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  .specimen li { padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+  .specimen li:last-child { border-bottom: 0; }
+  .specimen li b { display: block; color: var(--ink); font-weight: 500; margin-bottom: 2px; }
+  .specimen li span { color: var(--muted); }
+  .caption { font-size: 13px; color: var(--muted); margin-top: 12px; }
+
+  /* problem figures */
+  .figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 48px; border-top: 1px solid var(--rule); }
+  .figures div { padding: 28px 28px 0 0; }
+  .figures div + div { padding-left: 28px; border-left: 1px solid var(--rule); }
+  .figures strong { display: block; font: 400 34px/1.1 "IBM Plex Serif", Georgia, serif; color: var(--ink); margin-bottom: 8px; }
+  .figures span { font-size: 15px; color: var(--muted); display: block; max-width: 28ch; }
+  @media (max-width: 760px) {
+    .figures { grid-template-columns: 1fr; }
+    .figures div, .figures div + div { padding: 24px 0; border-left: 0; border-bottom: 1px solid var(--rule); }
+  }
+
+  /* steps */
+  .two { display: grid; grid-template-columns: 1fr 1.4fr; gap: 64px; }
+  @media (max-width: 920px) { .two { grid-template-columns: 1fr; gap: 32px; } }
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 48px 1fr; padding: 24px 0; border-top: 1px solid var(--rule); }
+  .steps li:last-child { border-bottom: 1px solid var(--rule); }
+  .steps li::before { content: counter(step, decimal-leading-zero); font: 400 13px/1.9 "IBM Plex Mono", monospace; color: var(--muted); }
+  .steps p { margin: 0; color: var(--body); font-size: 16px; }
+
+  /* checks table */
+  table { width: 100%; border-collapse: collapse; font-size: 15.5px; }
+  th { text-align: left; font-weight: 500; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; padding: 0 16px 12px 0; border-bottom: 1px solid var(--ink); }
+  td { padding: 16px 16px 16px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  td:first-child { color: var(--ink); font-weight: 500; width: 30%; }
+  @media (max-width: 640px) { td:first-child { width: auto; } th:last-child, td:last-child { display: none; } }
+
+  /* principles */
+  .principles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px 64px; margin-top: 40px; }
+  @media (max-width: 760px) { .principles { grid-template-columns: 1fr; gap: 32px; } }
+  .principles p { font-size: 16px; margin: 0; }
+
+  /* stack */
+  .stack { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule); margin-top: 40px; }
+  .stack div { padding: 24px 24px 24px 0; }
+  .stack div + div { padding-left: 24px; border-left: 1px solid var(--rule); }
+  .stack p { font-size: 15.5px; margin: 0; color: var(--muted); }
+  @media (max-width: 760px) {
+    .stack { grid-template-columns: 1fr; }
+    .stack div, .stack div + div { padding: 20px 0; border-left: 0; border-bottom: 1px solid var(--rule); }
+  }
+
+  .code { margin-top: 48px; border: 1px solid var(--rule); border-radius: 6px; background: #f5f3ef; overflow: hidden; }
+  .code-head { display: flex; justify-content: space-between; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--muted); background: var(--panel); }
+  .code pre + .code-head { border-top: 1px solid var(--rule); }
+  .code pre { margin: 0; padding: 18px; overflow-x: auto; font: 400 13px/1.6 "IBM Plex Mono", ui-monospace, monospace; color: var(--ink); }
+  .stack .mono { font-size: 13px; color: var(--ink); }
+
+  .closing { border-bottom: 0; }
+  .closing .wrap { display: flex; justify-content: space-between; align-items: end; gap: 40px; flex-wrap: wrap; }
+  .closing h2 { margin: 0; }
+
+  footer { border-top: 1px solid var(--rule); padding: 28px 0 40px; font-size: 14px; color: var(--muted); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="wrap">
+    <a class="mark" href="/">ClaimGuard</a>
+    <nav>
+      <a href="#problem">Problem</a>
+      <a href="#how">How it works</a>
+      <a href="#checks">What it checks</a>
+      <a href="#integration">Integration</a>
+      <a href="/docs">API</a>
+      <a class="cta" href="/app">Try the demo</a>
+    </nav>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Claim fraud screening for insurers</p>
+      <h1>Read every document in a claim. Check them against each other.</h1>
+      <p class="lede">ClaimGuard reviews the statement, photos, invoices and reports in every incoming claim, finds where they disagree, and gives your adjusters a risk assessment with the evidence behind it. It connects to your claims system through one API and runs inside your own cloud account.</p>
+      <div class="actions">
+        <a class="btn primary" href="/app">Try the demo</a>
+        <a class="btn secondary" href="#integration">How it integrates</a>
+      </div>
+    </div>
+
+    <div>
+      <div class="specimen" aria-label="Example assessment">
+        <header><b>Auto claim, rear damage</b><span class="mono">CLM-7F2A91</span></header>
+        <div class="score"><strong>95</strong><span class="tag flag">Investigate</span></div>
+        <p class="summary">The repair invoice predates the incident, lists front-end parts for a rear-end collision, and its total does not match its own line items.</p>
+        <ol>
+          <li><b>Invoice dated before the incident</b><span>Invoice 28 Sep; incident reported 1 Oct. Source: repair_invoice.png</span></li>
+          <li><b>Repairs do not match the reported damage</b><span>Statement describes rear damage; invoice lists hood, radiator and headlamps.</span></li>
+          <li><b>Total does not reconcile</b><span>Line items sum to $4,750; invoice total is $9,000.</span></li>
+        </ol>
+      </div>
+      <p class="caption">Excerpt from an assessment produced by the app on a synthetic test claim.</p>
+    </div>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="wrap">
+    <p class="eyebrow">The problem</p>
+    <h2>Fraud is found by cross-checking, and cross-checking is still done by hand.</h2>
+    <div class="prose">
+      <p>A typical claim arrives as a statement, a few photos, an invoice or estimate, and sometimes a police report. The fraud signal is rarely in any single document. It sits in the gaps between them: a receipt dated after the loss, a repair that doesn't match the damage, a police report that tells a different story from the claimant.</p>
+      <p>Finding those gaps means reading everything and comparing it line by line. Rule-based systems can check dates and limits, but they can't read a photo or notice that two documents describe different events. The result is slow payouts for honest customers and too little scrutiny where it matters.</p>
+    </div>
+    <div class="figures">
+      <div><strong>$308.6B</strong><span>Estimated annual cost of insurance fraud in the United States.<br>Coalition Against Insurance Fraud, 2022</span></div>
+      <div><strong>6</strong><span>Categories of cross-checks run on every claim, from timelines to invoice arithmetic</span></div>
+      <div><strong>Under 30 s</strong><span>Time for ClaimGuard to return a first-pass assessment on the test claims</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">How it works</p>
+      <h2>One review, three layers.</h2>
+      <p class="prose">The model does the reading and the reasoning. Fixed policy rules provide a floor it cannot argue its way below. The adjuster makes the decision.</p>
+    </div>
+    <ol class="steps">
+      <li><div><h3>The adjuster submits the claim</h3><p>Policy details, the claimant's statement, and every supporting file: photos, invoices, estimates, receipts, police reports. Images and PDFs are both accepted.</p></div></li>
+      <li><div><h3>Gemini reads and compares everything</h3><p>All files go to Gemini on Vertex AI in a single request. It extracts the key facts from each document, describes what the photos show, and checks each source against the others and against the statement.</p></div></li>
+      <li><div><h3>Policy rules run alongside</h3><p>Deterministic checks cover coverage limits, claims soon after a policy starts, late reporting and claim frequency. Their combined weight sets the minimum score, so a clear policy breach is never marked low risk.</p></div></li>
+      <li><div><h3>The adjuster gets a reasoned assessment</h3><p>A risk score from 0 to 100, a recommendation to approve, review or investigate, each finding with the file it came from, and suggested next steps. Follow-up questions are answered from the claim record alone.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="checks">
+  <div class="wrap">
+    <p class="eyebrow">What it checks</p>
+    <h2>The comparisons an experienced adjuster would make.</h2>
+    <table>
+      <thead><tr><th>Check</th><th>What it looks for</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Timeline</td><td>Document dates against the incident date, the policy period and the filing date</td><td>Purchase receipt dated after the reported loss</td></tr>
+        <tr><td>Damage and repairs</td><td>Whether invoiced work matches what the photos and statement describe</td><td>Front-end parts billed for a rear-end collision</td></tr>
+        <tr><td>Arithmetic</td><td>Line items, subtotals and totals on every invoice and estimate</td><td>Items sum to $4,750; total states $9,000</td></tr>
+        <tr><td>Narrative consistency</td><td>The statement against police reports and third-party documents</td><td>"Stolen at a cafe" against "lost on the metro"</td></tr>
+        <tr><td>Photo evidence</td><td>Damage type, severity and signs of staging, reuse or a mismatched item</td><td>Photographed vehicle differs from the insured vehicle</td></tr>
+        <tr><td>Policy rules</td><td>Coverage limits, new-policy claims, late reporting, claim history</td><td>Claim filed 10 days after the policy started</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="integration">
+  <div class="wrap">
+    <p class="eyebrow">For insurers</p>
+    <h2>Adds to the claims system you already run.</h2>
+    <p class="prose">ClaimGuard does not replace your claims platform or your adjusters' workflow. It sits beside them as a screening service: your system sends each new claim, and ClaimGuard returns an assessment your team can act on.</p>
+    <div class="stack">
+      <div><h3>Deploys in your account</h3><p>A single command installs ClaimGuard as a Cloud Run service in your own Google Cloud project. Claim files and assessments stay in your tenancy, and model calls run through your Vertex AI quota.</p></div>
+      <div><h3>One REST endpoint</h3><p>Send the claim fields and files to <span class="mono">/v1/claims/assess</span> with an API key and get structured JSON back. Pass your own claim number as <span class="mono">external_ref</span> to match results to records. The full reference is published at <a href="/docs">/docs</a>.</p></div>
+      <div><h3>Your rules, your thresholds</h3><p>Coverage-limit, new-policy, late-reporting and claim-frequency rules are configured per deployment, without code changes, so the rule floor reflects your own underwriting guidelines.</p></div>
+    </div>
+
+    <div class="code">
+      <div class="code-head"><span>Request</span><span class="mono">POST /v1/claims/assess</span></div>
+<pre>curl -X POST https://&lt;your-deployment&gt;/v1/claims/assess \
+  -H "X-API-Key: $CLAIMGUARD_KEY" \
+  -F external_ref=CLM-2026-004417 \
+  -F claim_type=auto -F claimed_amount=9000 -F coverage_limit=10000 \
+  -F incident_date=2026-10-01 -F policy_start=2025-11-20 \
+  -F description="Rear damage in a parking lot, other driver left" \
+  -F files=@repair_invoice.png -F files=@estimate.png</pre>
+      <div class="code-head"><span>Response (abridged)</span></div>
+<pre>{
+  "claim_id": "CLM-EE9AD1",
+  "external_ref": "CLM-2026-004417",
+  "assessment": {
+    "risk_score": 95,
+    "risk_level": "HIGH",
+    "recommendation": "INVESTIGATE",
+    "red_flags": [
+      { "severity": "HIGH",
+        "signal": "Invoice dated before incident",
+        "evidence": "Invoice 2026-09-28; incident 2026-10-01 (repair_invoice.png)" }
+    ],
+    "consistency_checks": [ ... ],
+    "next_steps": [ ... ]
+  }
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">Rollout</p>
+      <h2>Start in shadow mode.</h2>
+      <p class="prose">ClaimGuard is designed to prove itself before anyone relies on it.</p>
+    </div>
+    <ol class="steps">
+      <li><div><h3>Deploy and connect</h3><p>Install the service in your cloud project, issue an API key, and point a copy of your incoming claim feed at it.</p></div></li>
+      <li><div><h3>Run alongside your team</h3><p>Assessments are recorded but not shown to adjusters. Compare ClaimGuard's flags with your investigators' outcomes on the same claims.</p></div></li>
+      <li><div><h3>Tune the rules</h3><p>Adjust thresholds and weights to match your loss experience and underwriting guidelines.</p></div></li>
+      <li><div><h3>Bring it into the workflow</h3><p>Surface assessments to adjusters, fast-track low-risk claims for review, and route high-risk claims to your special investigations unit.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Design principles</p>
+    <h2>Built to support a decision, not to make one.</h2>
+    <div class="principles">
+      <div><h3>Every finding cites its source</h3><p>Each flag names the document it came from and the specific detail that triggered it, so the adjuster can verify it in seconds and the reasoning can be audited later.</p></div>
+      <div><h3>Fair to honest claimants</h3><p>The model is instructed not to invent concerns. When evidence is consistent it says so, and clean claims can be approved quickly instead of waiting in a general queue.</p></div>
+      <div><h3>Rules the model cannot override</h3><p>Hard policy conditions are evaluated in code, not by the model. A language model can raise a score above the rule floor but never lower it.</p></div>
+      <div><h3>A person decides</h3><p>ClaimGuard recommends; it never approves or denies a claim. Its job is to put the evidence in front of the adjuster, organised and checked.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Built on Google Cloud</p>
+    <h2>A small system with few moving parts.</h2>
+    <div class="stack">
+      <div><h3>Gemini on Vertex AI</h3><p>Multimodal reading of photos and documents, cross-document reasoning, and structured output against a fixed schema.</p></div>
+      <div><h3>Cloud Run</h3><p>A single containerised service that hosts the API and interface, scales with claim volume, and deploys into any Google Cloud project.</p></div>
+      <div><h3>Rule engine</h3><p>Plain, testable Python for policy checks, kept separate from the model so it behaves the same every time.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">See it on your own claims</p>
+      <h2>Four sample claims are loaded in the demo. The API reference is public.</h2>
+    </div>
+    <div class="actions">
+      <a class="btn primary" href="/app">Try the demo</a>
+      <a class="btn secondary" href="/docs">Read the API reference</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>ClaimGuard is in prototype. All sample claims, names and documents shown are synthetic.</span>
+    <span>Built by Priyam Maini · <a href="https://github.com/PR1YAM9/ai-builder-cup">GitHub</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

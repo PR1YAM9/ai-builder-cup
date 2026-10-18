@@ -12,14 +12,14 @@ import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-from .rules import run_rule_checks
+from .rules import RULES, run_rule_checks
 from .schema import ASSESSMENT_SCHEMA
 
 MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
@@ -44,7 +44,20 @@ def make_client() -> genai.Client:
 
 
 client = make_client()
-app = FastAPI(title="ClaimGuard AI")
+app = FastAPI(
+    title="ClaimGuard API",
+    version="1.0",
+    description="Submit an insurance claim with its supporting files and receive a "
+    "structured fraud-risk assessment. Authenticate /v1 requests with the X-API-Key header.",
+)
+
+# Integration keys for /v1, comma-separated. Unset means /v1 is open (demo mode).
+API_KEYS = {k.strip() for k in os.getenv("CLAIMGUARD_API_KEYS", "").split(",") if k.strip()}
+
+
+def require_api_key(x_api_key: str | None = Header(default=None)):
+    if API_KEYS and x_api_key not in API_KEYS:
+        raise HTTPException(401, "Missing or invalid X-API-Key")
 
 # In-memory claim store for the demo (history list + follow-up chat context).
 CLAIMS: dict[str, dict] = {}
@@ -80,6 +93,7 @@ async def analyze(
     prior_claims: int = Form(0),
     claimant_name: str = Form(""),
     date_filed: str = Form(""),
+    external_ref: str = Form(""),
     files: list[UploadFile] = File(default=[]),
 ):
     parts: list[types.Part] = []
@@ -106,6 +120,7 @@ async def analyze(
         "coverage_limit": coverage_limit,
         "prior_claims_last_3_years": prior_claims,
         "date_filed": date_filed or date.today().isoformat(),
+        "external_ref": external_ref,
     }
     rule_flags = run_rule_checks(metadata)
 
@@ -156,7 +171,7 @@ async def analyze(
         "assessment": assessment,
         "chat": [],
     }
-    return {"claim_id": claim_id, "metadata": metadata, "assessment": assessment}
+    return {"claim_id": claim_id, "external_ref": external_ref, "metadata": metadata, "assessment": assessment}
 
 
 class ChatIn(BaseModel):
@@ -224,6 +239,30 @@ def list_samples():
     return json.loads(index.read_text(encoding="utf-8")) if index.exists() else []
 
 
+def get_claim(claim_id: str):
+    claim = CLAIMS.get(claim_id)
+    if not claim:
+        raise HTTPException(404, "Claim not found")
+    return {k: claim[k] for k in ("id", "created", "metadata", "files", "assessment")}
+
+
+def get_rules():
+    return RULES
+
+
+# Versioned integration API for claims systems. Same handlers as the web UI,
+# behind API-key auth.
+v1 = [Depends(require_api_key)]
+app.add_api_route("/v1/claims/assess", analyze, methods=["POST"], dependencies=v1, tags=["v1"],
+                  summary="Assess a claim")
+app.add_api_route("/v1/claims/{claim_id}", get_claim, methods=["GET"], dependencies=v1, tags=["v1"],
+                  summary="Fetch a stored assessment")
+app.add_api_route("/v1/claims/{claim_id}/ask", chat, methods=["POST"], dependencies=v1, tags=["v1"],
+                  summary="Ask a question about an assessed claim")
+app.add_api_route("/v1/rules", get_rules, methods=["GET"], dependencies=v1, tags=["v1"],
+                  summary="Active policy-rule configuration")
+
+
 @app.get("/health")
 def health():
     return {"ok": True, "model": MODEL}
@@ -234,5 +273,10 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/")
+def landing():
+    return FileResponse(STATIC_DIR / "landing.html")
+
+
+@app.get("/app")
 def index():
     return FileResponse(STATIC_DIR / "index.html")

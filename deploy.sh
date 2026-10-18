@@ -17,6 +17,19 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
   --role="roles/aiplatform.user" --condition=None >/dev/null
 
+# Runtime config. RULES_CONFIG is JSON (contains commas), so use an env-vars file.
+ENV_FILE=$(mktemp)
+trap 'rm -f "$ENV_FILE"' EXIT
+{
+  echo "GOOGLE_CLOUD_PROJECT: \"$PROJECT_ID\""
+  echo "GOOGLE_CLOUD_LOCATION: \"$REGION\""
+  echo "GEMINI_MODEL: \"${GEMINI_MODEL:-gemini-2.5-flash}\""
+  # Optional: comma-separated keys required on /v1. Unset leaves /v1 open (demo mode).
+  if [ -n "${CLAIMGUARD_API_KEYS:-}" ]; then echo "CLAIMGUARD_API_KEYS: '$CLAIMGUARD_API_KEYS'"; fi
+  # Optional: rule overrides, e.g. RULES_CONFIG='{"late_report_days": 60}'
+  if [ -n "${RULES_CONFIG:-}" ]; then echo "RULES_CONFIG: '$RULES_CONFIG'"; fi
+} > "$ENV_FILE"
+
 gcloud run deploy "$SERVICE" \
   --source . \
   --project "$PROJECT_ID" \
@@ -26,6 +39,6 @@ gcloud run deploy "$SERVICE" \
   --min-instances 1 \
   --max-instances 3 \
   --timeout 120 \
-  --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$REGION,GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}"
+  --env-vars-file "$ENV_FILE"
 
 gcloud run services describe "$SERVICE" --project "$PROJECT_ID" --region "$REGION" --format='value(status.url)'
