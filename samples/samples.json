@@ -1,0 +1,73 @@
+[
+  {
+    "label": "1 · Rear-end collision (clean)",
+    "fields": {
+      "claimant_name": "Ananya Rao",
+      "claim_type": "auto",
+      "claimed_amount": 2335,
+      "coverage_limit": 15000,
+      "incident_date": "2026-10-06",
+      "policy_start": "2024-03-01",
+      "prior_claims": 0,
+      "date_filed": "2026-10-10",
+      "description": "On 6 Oct around 6:40pm I was stopped at the red light at Elm St & 5th Ave when a Toyota Innova hit the back of my car. Rear bumper and right tail light are broken. The other driver admitted fault and police came to the spot. Got it repaired at Northgate Auto Body."
+    },
+    "files": [
+      "s1_repair_invoice.png",
+      "s1_police_report.png"
+    ]
+  },
+  {
+    "label": "2 · Inflated repair invoice",
+    "fields": {
+      "claimant_name": "Vikram Shah",
+      "claim_type": "auto",
+      "claimed_amount": 9000,
+      "coverage_limit": 10000,
+      "incident_date": "2026-10-01",
+      "policy_start": "2025-11-20",
+      "prior_claims": 1,
+      "date_filed": "2026-10-12",
+      "description": "Someone reversed into my car in a parking lot on 1 October and damaged the back of the car. They drove off. I had it fixed at QuickFix Motors and paid cash. Claiming the full repair cost."
+    },
+    "files": [
+      "s2_repair_invoice.png",
+      "s2_estimate.png"
+    ]
+  },
+  {
+    "label": "3 · Lost phone, brand-new policy",
+    "fields": {
+      "claimant_name": "Rohit Malhotra",
+      "claim_type": "electronics",
+      "claimed_amount": 1600,
+      "coverage_limit": 1600,
+      "incident_date": "2026-10-04",
+      "policy_start": "2026-09-24",
+      "prior_claims": 3,
+      "date_filed": "2026-10-16",
+      "description": "My phone was stolen from my bag at a cafe on 4 October. I had bought it recently. I filed a police complaint. Please reimburse the full value."
+    },
+    "files": [
+      "s3_purchase_receipt.png",
+      "s3_fir_copy.png"
+    ]
+  },
+  {
+    "label": "4 · Kitchen water damage (late)",
+    "fields": {
+      "claimant_name": "Meera Joseph",
+      "claim_type": "property",
+      "claimed_amount": 4500,
+      "coverage_limit": 25000,
+      "incident_date": "2026-06-27",
+      "policy_start": "2023-01-15",
+      "prior_claims": 0,
+      "date_filed": "2026-10-14",
+      "description": "A flexible hose under the kitchen sink burst overnight on 27 June and flooded the kitchen. A plumber fixed it and dried everything out; cabinets and flooring had to be replaced. I was travelling for work after that so I'm only filing now."
+    },
+    "files": [
+      "s4_plumber_invoice.png"
+    ]
+  }
+]

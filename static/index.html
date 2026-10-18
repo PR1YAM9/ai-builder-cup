@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClaimGuard AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f7fb; --panel: #ffffff; --ink: #0f172a; --muted: #64748b; --line: #e2e8f0;
+    --brand: #1d4ed8; --brand-ink: #ffffff; --soft: #eef2ff;
+    --low: #16a34a; --med: #d97706; --high: #dc2626;
+    --low-bg: #dcfce7; --med-bg: #fef3c7; --high-bg: #fee2e2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  header { background: #0b1b3f; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+  header .logo { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#3b82f6,#22d3ee); display: grid; place-items: center; font-weight: 700; }
+  header h1 { font-size: 18px; margin: 0; }
+  header span { color: #93c5fd; font-size: 13px; }
+  header nav { margin-left: auto; display: flex; gap: 6px; }
+  header nav button { background: transparent; color: #cbd5e1; border: 1px solid #334155; padding: 7px 14px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; }
+  header nav button.active { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+  main { max-width: 1280px; margin: 0 auto; padding: 20px 16px 60px; }
+  .grid { display: grid; grid-template-columns: 420px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card h2 { font-size: 15px; margin: 0 0 12px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin: 10px 0 4px; }
+  input, select, textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; background: #fff; color: var(--ink); }
+  textarea { min-height: 96px; resize: vertical; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .samples { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .chip { border: 1px solid var(--line); background: var(--soft); color: var(--brand); border-radius: 999px; padding: 5px 11px; font-size: 12px; cursor: pointer; font-weight: 500; }
+  .chip:hover { border-color: var(--brand); }
+  .drop { margin-top: 6px; border: 2px dashed #cbd5e1; border-radius: 10px; padding: 16px; text-align: center; color: var(--muted); font-size: 13px; cursor: pointer; }
+  .drop.over { border-color: var(--brand); background: var(--soft); }
+  .thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .thumb { position: relative; width: 72px; height: 72px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #f1f5f9; display: grid; place-items: center; font-size: 10px; color: var(--muted); text-align: center; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb button { position: absolute; top: 2px; right: 2px; border: 0; background: rgba(15,23,42,.7); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; cursor: pointer; line-height: 18px; padding: 0; }
+  .btn { width: 100%; margin-top: 14px; background: var(--brand); color: var(--brand-ink); border: 0; padding: 12px; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; font-size: 15px; }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+  .empty .big { font-size: 40px; margin-bottom: 8px; }
+  .verdict { display: grid; grid-template-columns: 170px 1fr; gap: 20px; align-items: center; }
+  @media (max-width: 600px) { .verdict { grid-template-columns: 1fr; justify-items: center; } }
+  .gauge { position: relative; width: 160px; height: 160px; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .num { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .gauge .num b { font-size: 38px; display: block; line-height: 1; }
+  .gauge .num small { color: var(--muted); font-size: 11px; }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+  .LOW, .PASS, .APPROVE { background: var(--low-bg); color: var(--low); }
+  .MEDIUM, .WARN, .MANUAL_REVIEW { background: var(--med-bg); color: var(--med); }
+  .HIGH, .FAIL, .INVESTIGATE { background: var(--high-bg); color: var(--high); }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+  .flag { border-left: 4px solid; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; background: #f8fafc; font-size: 13px; }
+  .flag.HIGH { border-color: var(--high); } .flag.MEDIUM { border-color: var(--med); } .flag.LOW { border-color: var(--low); }
+  .flag b { display: block; margin-bottom: 2px; color: var(--ink); }
+  .flag span { color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  ul.steps { margin: 0; padding-left: 18px; font-size: 13px; } ul.steps li { margin-bottom: 6px; }
+  .chat-log { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .msg { padding: 9px 12px; border-radius: 10px; font-size: 13px; max-width: 85%; white-space: pre-wrap; }
+  .msg.user { align-self: flex-end; background: var(--brand); color: #fff; }
+  .msg.model { align-self: flex-start; background: #f1f5f9; }
+  .chat-in { display: flex; gap: 8px; } .chat-in input { flex: 1; } .chat-in button { width: auto; margin: 0; padding: 0 16px; }
+  .quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .spinner { width: 42px; height: 42px; border: 4px solid var(--soft); border-top-color: var(--brand); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 14px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .err { background: var(--high-bg); color: var(--high); padding: 12px; border-radius: 10px; font-size: 13px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat b { font-size: 26px; display: block; } .stat small { color: var(--muted); font-size: 12px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CG</div>
+  <div><h1>ClaimGuard AI</h1><span>Multimodal claim fraud &amp; risk triage · Gemini on Vertex AI</span></div>
+  <nav>
+    <button id="tab-analyze" class="active" onclick="showTab('analyze')">Analyze claim</button>
+    <button id="tab-history" onclick="showTab('history')">Claims queue</button>
+  </nav>
+</header>
+
+<main>
+<section id="view-analyze" class="grid">
+  <form id="claim-form" class="card" onsubmit="submitClaim(event)">
+    <h2>New claim</h2>
+    <label>Load a sample claim</label>
+    <div class="samples" id="samples"></div>
+
+    <div class="row">
+      <div><label>Claimant</label><input name="claimant_name" placeholder="Jane Doe"></div>
+      <div><label>Claim type</label>
+        <select name="claim_type"><option value="auto">Auto</option><option value="property">Property / Home</option><option value="health">Health</option><option value="travel">Travel</option><option value="electronics">Electronics / Gadget</option></select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Claimed amount</label><input name="claimed_amount" type="number" step="0.01" placeholder="0"></div>
+      <div><label>Coverage limit</label><input name="coverage_limit" type="number" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="row">
+      <div><label>Incident date</label><input name="incident_date" type="date"></div>
+      <div><label>Policy start</label><input name="policy_start" type="date"></div>
+    </div>
+    <div class="row">
+      <div><label>Prior claims (last 3 yrs)</label><input name="prior_claims" type="number" value="0" min="0"></div>
+      <div><label>Date filed</label><input name="date_filed" type="date"></div>
+    </div>
+    <label>What happened? (claimant statement)</label>
+    <textarea name="description" required placeholder="Describe the incident..."></textarea>
+
+    <label>Evidence: damage photos, invoices, receipts, reports (JPG/PNG/PDF)</label>
+    <div class="drop" id="drop">Drop files here or click to upload</div>
+    <input type="file" id="file-input" multiple accept="image/*,application/pdf" class="hidden">
+    <div class="thumbs" id="thumbs"></div>
+
+    <button class="btn" id="submit-btn" type="submit">Analyze with Gemini</button>
+  </form>
+
+  <div id="results">
+    <div class="card empty">
+      <div class="big">🛡️</div>
+      <b>No claim analyzed yet</b>
+      <p>Load a sample or upload your own evidence. ClaimGuard reads every photo and document,
+        cross-checks them against the claimant's story and policy rules, and returns a fraud-risk verdict in seconds.</p>
+    </div>
+  </div>
+</section>
+
+<section id="view-history" class="hidden">
+  <div class="stats" id="stats"></div>
+  <div class="card"><h2>Claims queue</h2><div id="history"></div></div>
+</section>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let files = [];
+let currentClaim = null;
+
+function showTab(t) {
+  ['analyze','history'].forEach(x => {
+    $('#view-' + x).classList.toggle('hidden', x !== t);
+    $('#tab-' + x).classList.toggle('active', x === t);
+  });
+  if (t === 'history') loadHistory();
+}
+
+// ---------- file handling ----------
+const drop = $('#drop'), fileInput = $('#file-input');
+drop.onclick = () => fileInput.click();
+fileInput.onchange = () => { addFiles(fileInput.files); fileInput.value = ''; };
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer.files); };
+
+function addFiles(list) { files.push(...list); renderThumbs(); }
+function removeFile(i) { files.splice(i, 1); renderThumbs(); }
+function renderThumbs() {
+  $('#thumbs').innerHTML = files.map((f, i) => {
+    const inner = f.type.startsWith('image/')
+      ? `<img src="${URL.createObjectURL(f)}" alt="${esc(f.name)}">`
+      : `<div>📄<br>${esc(f.name.slice(0, 14))}</div>`;
+    return `<div class="thumb" title="${esc(f.name)}">${inner}<button type="button" onclick="removeFile(${i})">×</button></div>`;
+  }).join('');
+}
+
+// ---------- samples ----------
+let samples = [];
+fetch('/api/samples').then(r => r.json()).then(list => {
+  samples = list;
+  $('#samples').innerHTML = list.map((s, i) => `<span class="chip" onclick="loadSample(${i})">${esc(s.label)}</span>`).join('');
+});
+
+async function loadSample(i) {
+  const s = samples[i], form = $('#claim-form');
+  for (const [k, v] of Object.entries(s.fields)) if (form.elements[k]) form.elements[k].value = v;
+  files = [];
+  for (const name of s.files) {
+    const blob = await fetch('/samples/' + encodeURIComponent(name)).then(r => r.blob());
+    files.push(new File([blob], name, { type: blob.type }));
+  }
+  renderThumbs();
+}
+
+// ---------- analyze ----------
+async function submitClaim(e) {
+  e.preventDefault();
+  const fd = new FormData($('#claim-form'));
+  for (const k of ['claimed_amount', 'coverage_limit', 'prior_claims']) if (!fd.get(k)) fd.set(k, '0');
+  files.forEach(f => fd.append('files', f, f.name));
+  const btn = $('#submit-btn');
+  btn.disabled = true; btn.textContent = 'Analyzing...';
+  $('#results').innerHTML = `<div class="card empty"><div class="spinner"></div><b>Gemini is reviewing the evidence</b>
+    <p>Reading documents, inspecting photos, cross-checking the claimant's statement and policy rules...</p></div>`;
+  try {
+    const r = await fetch('/api/analyze', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Analysis failed');
+    currentClaim = data.claim_id;
+    renderResult(data);
+  } catch (err) {
+    $('#results').innerHTML = `<div class="card"><div class="err">${esc(err.message)}</div></div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analyze with Gemini';
+  }
+}
+
+function gauge(score, level) {
+  const r = 70, c = 2 * Math.PI * r, color = { LOW: 'var(--low)', MEDIUM: 'var(--med)', HIGH: 'var(--high)' }[level];
+  return `<div class="gauge"><svg width="160" height="160">
+    <circle cx="80" cy="80" r="${r}" stroke="#e2e8f0" stroke-width="14" fill="none"/>
+    <circle cx="80" cy="80" r="${r}" stroke="${color}" stroke-width="14" fill="none" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - score / 100)}" style="transition:stroke-dashoffset 1s"/>
+    </svg><div class="num"><div><b>${score}</b><small>FRAUD RISK</small></div></div></div>`;
+}
+
+function renderResult({ claim_id, assessment: a }) {
+  const flags = [
+    ...a.rule_flags.map(r => ({ severity: r.weight >= 30 ? 'HIGH' : r.weight >= 15 ? 'MEDIUM' : 'LOW', signal: '⚙️ Rule: ' + r.rule, evidence: r.detail })),
+    ...a.red_flags,
+  ];
+  $('#results').innerHTML = `
+  <div class="card">
+    <div class="verdict">
+      ${gauge(a.risk_score, a.risk_level)}
+      <div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="badge ${a.risk_level}">${a.risk_level} RISK</span>
+          <span class="badge ${a.recommendation}">${a.recommendation.replace('_', ' ')}</span>
+          <span class="meta" style="margin:0">${esc(claim_id)} · confidence ${esc(a.confidence)}</span>
+        </div>
+        <p style="font-size:15px;line-height:1.5;margin:12px 0 0">${esc(a.summary)}</p>
+        <div class="meta">AI score ${a.ai_score} · Policy-rule floor ${a.rule_score} · Final = max of both</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="card"><h2>🚩 Red flags (${flags.length})</h2>
+      ${flags.length ? flags.map(f => `<div class="flag ${f.severity}"><b>${esc(f.signal)}</b><span>${esc(f.evidence)}</span></div>`).join('') : '<p class="meta">No red flags detected.</p>'}
+    </div>
+    <div class="card"><h2>✅ Consistency checks</h2>
+      <table>${a.consistency_checks.map(c => `<tr><td><span class="badge ${c.status}">${c.status}</span></td><td><b>${esc(c.check)}</b><br><span class="meta">${esc(c.detail)}</span></td></tr>`).join('')}</table>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="card"><h2>📄 Extracted from evidence</h2>
+      <table><tr><th>Field</th><th>Value</th><th>Source</th></tr>
+      ${a.extracted_fields.map(f => `<tr><td>${esc(f.field)}</td><td>${esc(f.value)}</td><td class="meta">${esc(f.source)}</td></tr>`).join('')}</table>
+    </div>
+    <div class="card"><h2>📷 Photo analysis</h2>
+      ${a.photo_findings.length ? a.photo_findings.map(p => `<p style="font-size:13px;margin:0 0 10px"><b>${esc(p.file)}</b><br>${esc(p.observation)}</p>`).join('') : '<p class="meta">No photos submitted.</p>'}
+      <h2 style="margin-top:16px">➡️ Next steps</h2>
+      <ul class="steps">${a.next_steps.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px"><h2>💬 Ask ClaimGuard about this claim</h2>
+    <div class="quick">
+      ${['Why did you give this score?', 'Draft a message to the claimant requesting more documents', 'What should the field investigator verify first?']
+        .map(q => `<span class="chip" onclick="askQ(this.textContent)">${q}</span>`).join('')}
+    </div>
+    <div class="chat-log" id="chat-log"></div>
+    <form class="chat-in" onsubmit="event.preventDefault(); askQ($('#chat-q').value)">
+      <input id="chat-q" placeholder="Ask a follow-up question...">
+      <button class="btn" type="submit">Ask</button>
+    </form>
+  </div>`;
+}
+
+async function askQ(q) {
+  if (!q.trim() || !currentClaim) return;
+  const log = $('#chat-log');
+  log.insertAdjacentHTML('beforeend', `<div class="msg user">${esc(q)}</div><div class="msg model" id="pending">Thinking...</div>`);
+  $('#chat-q').value = '';
+  log.scrollTop = log.scrollHeight;
+  try {
+    const r = await fetch(`/api/claims/${currentClaim}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q }) });
+    const data = await r.json();
+    $('#pending').textContent = r.ok ? data.answer : (data.detail || 'Error');
+  } catch (e) { $('#pending').textContent = e.message; }
+  $('#pending').removeAttribute('id');
+  log.scrollTop = log.scrollHeight;
+}
+
+// ---------- history ----------
+async function loadHistory() {
+  const list = await fetch('/api/claims').then(r => r.json());
+  const n = list.length, high = list.filter(c => c.risk_level === 'HIGH').length;
+  const flaggedAmt = list.filter(c => c.recommendation !== 'APPROVE').reduce((s, c) => s + c.amount, 0);
+  const avg = n ? Math.round(list.reduce((s, c) => s + c.risk_score, 0) / n) : 0;
+  $('#stats').innerHTML = [
+    [n, 'Claims analyzed'], [high, 'High-risk claims'], [avg, 'Avg risk score'], ['$' + flaggedAmt.toLocaleString(), 'Value held for review'],
+  ].map(([v, l]) => `<div class="card stat"><b>${v}</b><small>${l}</small></div>`).join('');
+  $('#history').innerHTML = n ? `<table><tr><th>Claim</th><th>Claimant</th><th>Type</th><th>Amount</th><th>Risk</th><th>Decision</th></tr>
+    ${list.map(c => `<tr><td>${esc(c.id)}</td><td>${esc(c.claimant || '—')}</td><td>${esc(c.type)}</td><td>$${c.amount.toLocaleString()}</td>
+      <td><span class="badge ${c.risk_level}">${c.risk_score} ${c.risk_level}</span></td><td><span class="badge ${c.recommendation}">${c.recommendation.replace('_', ' ')}</span></td></tr>`).join('')}
+    </table>` : '<p class="meta">No claims yet. Analyze one first.</p>';
+}
+</script>
+</body>
+</html>
