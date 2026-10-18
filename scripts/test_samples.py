@@ -21,7 +21,7 @@ def post_multipart(url, fields, files):
         body += f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode()
     for name in files:
         body += (f'--{boundary}\r\nContent-Disposition: form-data; name="files"; filename="{name}"\r\n'
-                 f"Content-Type: image/png\r\n\r\n").encode() + (SAMPLES / name).read_bytes() + b"\r\n"
+                 f"Content-Type: {'image/jpeg' if name.endswith('.jpg') else 'image/png'}\r\n\r\n").encode() + (SAMPLES / name).read_bytes() + b"\r\n"
     body += f"--{boundary}--\r\n".encode()
     req = urllib.request.Request(url, data=body, headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
     with urllib.request.urlopen(req, timeout=180) as r:

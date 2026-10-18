@@ -6,8 +6,11 @@ structured fraud-risk assessment. Deterministic rule checks run alongside the
 model so the final score blends policy rules with AI reasoning.
 """
 
+import asyncio
 import json
+import logging
 import os
+import time
 import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -70,14 +73,20 @@ Your job:
 1. Extract key facts from every document (vendor, dates, line items, totals).
 2. Describe what the photos actually show (object, damage type, severity, any
    signs of staging, reuse, editing, stock imagery, or mismatched vehicle/item).
+   For vehicles, read the badge or emblem, body style and colour in each photo
+   and check them against the make, model and colour in every document.
 3. Cross-check everything: narrative vs photos, photos vs invoice line items,
    invoice totals vs claimed amount, dates vs incident date and policy period,
    arithmetic on invoices, plausibility of repair costs for the damage seen.
+   Build a timeline: compare every date in every document with every other
+   date (purchase vs loss, invoice vs incident, report vs incident, policy start)
+   and flag any event that happens before something it depends on.
 4. List concrete red flags with the specific evidence. Do not invent flags; if
    evidence is consistent, say so. Missing evidence is a flag only if it matters.
 5. Score fraud risk 0-100 (0-29 low, 30-59 medium, 60-100 high) and recommend
    APPROVE, MANUAL_REVIEW, or INVESTIGATE.
 
+Write plain text only, with no markdown, asterisks or bullet symbols.
 Be specific, cite which file the evidence came from, and be fair to honest
 claimants. Write for a claims adjuster who must act on this in two minutes."""
 
@@ -133,20 +142,32 @@ async def analyze(
         f"{json.dumps(rule_flags, indent=2)}"
     )
 
-    try:
-        resp = client.models.generate_content(
-            model=MODEL,
-            contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt), *parts])],
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
-                response_mime_type="application/json",
-                response_schema=ASSESSMENT_SCHEMA,
-                temperature=0.2,
-            ),
-        )
-        assessment = json.loads(resp.text)
-    except Exception as e:  # surface model errors to the UI instead of a bare 500
-        raise HTTPException(502, f"Gemini analysis failed: {e}") from e
+    started = time.monotonic()
+    # Retry transient model errors (overload, truncated JSON) before giving up.
+    for attempt in range(3):
+        try:
+            resp = await client.aio.models.generate_content(
+                model=MODEL,
+                contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt), *parts])],
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    response_mime_type="application/json",
+                    response_schema=ASSESSMENT_SCHEMA,
+                    temperature=0.2,
+                ),
+            )
+            assessment = json.loads(resp.text)
+            break
+        except Exception as e:  # surface model errors to the UI instead of a bare 500
+            logging.warning("Gemini attempt %d failed: %s", attempt + 1, e)
+            if attempt == 2:
+                raise HTTPException(502, f"Gemini analysis failed: {e}") from e
+            await asyncio.sleep(2 * (attempt + 1))
+    assessment["elapsed_s"] = round(time.monotonic() - started, 1)
+    assessment["model"] = MODEL
+    usage = resp.usage_metadata
+    assessment["tokens"] = {"input": usage.prompt_token_count,
+                            "output": (usage.candidates_token_count or 0) + (usage.thoughts_token_count or 0)}
 
     # Blend: rule hits put a floor under the AI score so hard policy breaches
     # can never be scored as low risk.
@@ -159,6 +180,9 @@ async def analyze(
     assessment["risk_level"] = "HIGH" if final >= 60 else "MEDIUM" if final >= 30 else "LOW"
     if final >= 60 and assessment.get("recommendation") == "APPROVE":
         assessment["recommendation"] = "INVESTIGATE"
+    elif rule_flags and assessment.get("recommendation") == "APPROVE":
+        # Any policy-rule hit blocks auto-approval: a person must look at it.
+        assessment["recommendation"] = "MANUAL_REVIEW"
     assessment["rule_flags"] = rule_flags
 
     claim_id = "CLM-" + uuid.uuid4().hex[:6].upper()

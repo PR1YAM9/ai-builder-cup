@@ -87,7 +87,18 @@
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
   @media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
   .stat b { font: 400 30px/1.1 "IBM Plex Serif", Georgia, serif; color: var(--ink); display: block; margin-bottom: 4px; } .stat small { color: var(--muted); font-size: 12.5px; }
+  .photo { display: grid; grid-template-columns: 96px 1fr; gap: 12px; margin: 0 0 12px; font-size: 13.5px; }
+  .photo:not(:has(img)) { grid-template-columns: 1fr; }
+  .photo img { width: 96px; height: 96px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); }
+  .photo p { margin: 0; }
+  .meta a { color: var(--ink); }
   .hidden { display: none; }
+  @media print {
+    header, #claim-form, .noprint, .chat-card, .quick { display: none !important; }
+    body { background: #fff; }
+    .grid { grid-template-columns: 1fr; }
+    .card { break-inside: avoid; border-color: #ccc; }
+  }
 </style>
 </head>
 <body>
@@ -156,7 +167,7 @@
 
 <script>
 const $ = (s) => document.querySelector(s);
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = (s) => String(s ?? '').replace(/\*+/g, '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let files = [];
 let currentClaim = null;
 
@@ -192,6 +203,8 @@ let samples = [];
 fetch('/api/samples').then(r => r.json()).then(list => {
   samples = list;
   $('#samples').innerHTML = list.map((s, i) => `<span class="chip" onclick="loadSample(${i})">${esc(s.label)}</span>`).join('');
+  const n = parseInt(new URLSearchParams(location.search).get('sample'), 10);
+  if (n >= 1 && n <= list.length) loadSample(n - 1).then(() => $('#claim-form').requestSubmit());
 });
 
 async function loadSample(i) {
@@ -254,6 +267,8 @@ function renderResult({ claim_id, assessment: a }) {
         </div>
         <p style="font-size:15px;line-height:1.5;margin:12px 0 0">${esc(a.summary)}</p>
         <div class="meta">Model score ${a.ai_score}. Policy rule minimum ${a.rule_score}. The higher of the two is used.</div>
+        <div class="meta">Reviewed ${files.length} file${files.length === 1 ? '' : 's'} in ${a.elapsed_s ?? '?'} s with ${esc(a.model || 'Gemini')} on Vertex AI.
+          <a href="#" class="noprint" onclick="window.print(); return false;">Print or save as PDF</a></div>
       </div>
     </div>
   </div>
@@ -273,13 +288,16 @@ function renderResult({ claim_id, assessment: a }) {
       ${a.extracted_fields.map(f => `<tr><td>${esc(f.field)}</td><td>${esc(f.value)}</td><td class="meta">${esc(f.source)}</td></tr>`).join('')}</table>
     </div>
     <div class="card"><h2>Photo review</h2>
-      ${a.photo_findings.length ? a.photo_findings.map(p => `<p style="font-size:13px;margin:0 0 10px"><b>${esc(p.file)}</b><br>${esc(p.observation)}</p>`).join('') : '<p class="meta">No photos submitted.</p>'}
+      ${a.photo_findings.length ? a.photo_findings.map(p => {
+        const f = files.find(x => x.name === p.file && x.type.startsWith('image/'));
+        return `<div class="photo">${f ? `<img src="${URL.createObjectURL(f)}" alt="${esc(p.file)}">` : ''}<p><b>${esc(p.file)}</b><br>${esc(p.observation)}</p></div>`;
+      }).join('') : '<p class="meta">No photos submitted.</p>'}
       <h2 style="margin-top:20px">Suggested next steps</h2>
       <ul class="steps">${a.next_steps.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
     </div>
   </div>
 
-  <div class="card" style="margin-top:16px"><h2>Questions about this claim</h2>
+  <div class="card chat-card" style="margin-top:16px"><h2>Questions about this claim</h2>
     <div class="quick">
       ${['Why did you give this score?', 'Draft a message to the claimant requesting more documents', 'What should the field investigator verify first?']
         .map(q => `<span class="chip" onclick="askQ(this.textContent)">${q}</span>`).join('')}
@@ -317,7 +335,7 @@ async function loadHistory() {
     [n, 'Claims reviewed'], [high, 'High risk'], [avg, 'Average risk score'], ['$' + flaggedAmt.toLocaleString(), 'Value held for review'],
   ].map(([v, l]) => `<div class="card stat"><b>${v}</b><small>${l}</small></div>`).join('');
   $('#history').innerHTML = n ? `<table><tr><th>Claim</th><th>Claimant</th><th>Type</th><th>Amount</th><th>Risk</th><th>Decision</th></tr>
-    ${list.map(c => `<tr><td>${esc(c.id)}</td><td>${esc(c.claimant || '—')}</td><td>${esc(c.type)}</td><td>$${c.amount.toLocaleString()}</td>
+    ${list.map(c => `<tr><td>${esc(c.id)}</td><td>${esc(c.claimant || '-')}</td><td>${esc(c.type)}</td><td>$${c.amount.toLocaleString()}</td>
       <td><span class="badge ${c.risk_level}">${c.risk_score} ${c.risk_level}</span></td><td><span class="badge ${c.recommendation}">${c.recommendation.replace('_', ' ')}</span></td></tr>`).join('')}
     </table>` : '<p class="meta">No claims reviewed in this session yet.</p>';
 }

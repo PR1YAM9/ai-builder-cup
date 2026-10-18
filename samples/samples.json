@@ -10,9 +10,10 @@
       "policy_start": "2024-03-01",
       "prior_claims": 0,
       "date_filed": "2026-10-10",
-      "description": "On 6 Oct around 6:40pm I was stopped at the red light at Elm St & 5th Ave when a Toyota Innova hit the back of my car. Rear bumper and right tail light are broken. The other driver admitted fault and police came to the spot. Got it repaired at Northgate Auto Body."
+      "description": "On 6 Oct around 6:40pm I was stopped at the red light at Elm St & 5th Ave when a Mahindra Scorpio hit the back of my Corolla. Rear bumper and right tail light are broken. The other driver admitted fault and police came to the spot. Got it repaired at Northgate Auto Body."
     },
     "files": [
+      "s1_damage_rear.jpg",
       "s1_repair_invoice.png",
       "s1_police_report.png"
     ]
@@ -31,6 +32,7 @@
       "description": "Someone reversed into my car in a parking lot on 1 October and damaged the back of the car. They drove off. I had it fixed at QuickFix Motors and paid cash. Claiming the full repair cost."
     },
     "files": [
+      "s2_damage_front.jpg",
       "s2_repair_invoice.png",
       "s2_estimate.png"
     ]
@@ -67,7 +69,27 @@
       "description": "A flexible hose under the kitchen sink burst overnight on 27 June and flooded the kitchen. A plumber fixed it and dried everything out; cabinets and flooring had to be replaced. I was travelling for work after that so I'm only filing now."
     },
     "files": [
+      "s4_kitchen_water.jpg",
       "s4_plumber_invoice.png"
+    ]
+  },
+  {
+    "label": "5 · Photo of a different car",
+    "fields": {
+      "claimant_name": "Arjun Nair",
+      "claim_type": "auto",
+      "claimed_amount": 2335,
+      "coverage_limit": 15000,
+      "incident_date": "2026-10-06",
+      "policy_start": "2024-03-01",
+      "prior_claims": 0,
+      "date_filed": "2026-10-10",
+      "description": "On 6 Oct around 6:40pm I was stopped at the red light at Elm St & 5th Ave when an SUV hit the back of my Honda City. Rear bumper and right tail light are broken. The other driver admitted fault and police came to the spot. Got it repaired at Northgate Auto Body."
+    },
+    "files": [
+      "s1_damage_rear.jpg",
+      "s5_repair_invoice.png",
+      "s5_police_report.png"
     ]
   }
 ]

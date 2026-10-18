@@ -1,0 +1,92 @@
+[
+  {
+    "sample": "1 · Rear-end collision (clean)",
+    "files": 3,
+    "expected": "APPROVE",
+    "verdicts": [
+      "APPROVE",
+      "APPROVE",
+      "APPROVE"
+    ],
+    "correct": 3,
+    "runs": 3,
+    "score_min": 5,
+    "score_max": 10,
+    "score_mean": 7,
+    "latency_mean_s": 24.7,
+    "tokens_in_mean": 1650,
+    "tokens_out_mean": 4887
+  },
+  {
+    "sample": "2 · Inflated repair invoice",
+    "files": 3,
+    "expected": "INVESTIGATE",
+    "verdicts": [
+      "INVESTIGATE",
+      "INVESTIGATE",
+      "INVESTIGATE"
+    ],
+    "correct": 3,
+    "runs": 3,
+    "score_min": 100,
+    "score_max": 100,
+    "score_mean": 100,
+    "latency_mean_s": 31.8,
+    "tokens_in_mean": 1709,
+    "tokens_out_mean": 6218
+  },
+  {
+    "sample": "3 · Lost phone, brand-new policy",
+    "files": 2,
+    "expected": "INVESTIGATE",
+    "verdicts": [
+      "INVESTIGATE",
+      "INVESTIGATE",
+      "INVESTIGATE"
+    ],
+    "correct": 3,
+    "runs": 3,
+    "score_min": 85,
+    "score_max": 100,
+    "score_mean": 95,
+    "latency_mean_s": 21.2,
+    "tokens_in_mean": 1462,
+    "tokens_out_mean": 4100
+  },
+  {
+    "sample": "4 · Kitchen water damage (late)",
+    "files": 2,
+    "expected": "MANUAL_REVIEW",
+    "verdicts": [
+      "MANUAL_REVIEW",
+      "MANUAL_REVIEW",
+      "MANUAL_REVIEW"
+    ],
+    "correct": 3,
+    "runs": 3,
+    "score_min": 15,
+    "score_max": 35,
+    "score_mean": 23,
+    "latency_mean_s": 26.7,
+    "tokens_in_mean": 1403,
+    "tokens_out_mean": 4766
+  },
+  {
+    "sample": "5 · Photo of a different car",
+    "files": 3,
+    "expected": "INVESTIGATE",
+    "verdicts": [
+      "INVESTIGATE",
+      "INVESTIGATE",
+      "INVESTIGATE"
+    ],
+    "correct": 3,
+    "runs": 3,
+    "score_min": 65,
+    "score_max": 85,
+    "score_mean": 77,
+    "latency_mean_s": 21.7,
+    "tokens_in_mean": 1650,
+    "tokens_out_mean": 4741
+  }
+]

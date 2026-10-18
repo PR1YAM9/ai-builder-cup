@@ -67,7 +67,7 @@ def document(filename, header, sub, meta, lines, totals, footer, accent=(29, 78,
 document(
     "s1_repair_invoice.png", "Northgate Auto Body", "Collision Repair Specialists · 412 Mill Rd, Springfield · GST 29ABCDE1234F1Z5",
     [("Invoice #", "NAB-20931"), ("Invoice date", "2026-10-09"), ("Customer", "Ananya Rao"),
-     ("Vehicle", "2021 Honda City, Silver · KA-05-MN-4421"), ("Damage", "Rear bumper & tail lamp (rear-end impact)")],
+     ("Vehicle", "2020 Toyota Corolla, Silver · KA-05-MN-4421"), ("Damage", "Rear bumper & tail lamp (rear-end impact)")],
     [("Rear bumper cover (OEM)", 1, "$640.00"), ("Right tail lamp assembly", 1, "$310.00"),
      ("Bumper reinforcement bar", 1, "$280.00"), ("Paint & blending, rear panel", 1, "$520.00"),
      ("Labour - 6.5 hrs @ $90", 1, "$585.00")],
@@ -77,7 +77,29 @@ document(
 document(
     "s1_police_report.png", "Springfield Police Dept.", "Traffic Incident Report · Non-injury",
     [("Report #", "SPD-TR-2026-118842"), ("Date / time", "2026-10-06, 18:40"), ("Location", "Elm St & 5th Ave signal"),
-     ("Vehicle 1", "2021 Honda City, KA-05-MN-4421 (A. Rao) - stationary at red"),
+     ("Vehicle 1", "2020 Toyota Corolla, KA-05-MN-4421 (A. Rao) - stationary at red"),
+     ("Vehicle 2", "2017 Mahindra Scorpio, KA-03-HJ-9902 (R. Menon)"), ("Officer", "Sgt. P. Kulkarni #4471")],
+    [], [],
+    ["Narrative: Vehicle 2 failed to stop and struck the rear of Vehicle 1 while it", "was waiting at a red signal. Rear bumper and right tail lamp of V1 damaged.",
+     "Driver of V2 admitted fault at scene. No injuries reported.", "", "Signed: Sgt. P. Kulkarni"],
+    accent=(30, 41, 59),
+)
+
+# ---- Sample 5: photo shows a different make than the paperwork ---------------------------------
+document(
+    "s5_repair_invoice.png", "Northgate Auto Body", "Collision Repair Specialists · 412 Mill Rd, Springfield · GST 29ABCDE1234F1Z5",
+    [("Invoice #", "NAB-20977"), ("Invoice date", "2026-10-09"), ("Customer", "Arjun Nair"),
+     ("Vehicle", "2021 Honda City, Silver · KA-05-MN-4421"), ("Damage", "Rear bumper & tail lamp (rear-end impact)")],
+    [("Rear bumper cover (OEM)", 1, "$640.00"), ("Right tail lamp assembly", 1, "$310.00"),
+     ("Bumper reinforcement bar", 1, "$280.00"), ("Paint & blending, rear panel", 1, "$520.00"),
+     ("Labour - 6.5 hrs @ $90", 1, "$585.00")],
+    [("Subtotal", "$2,335.00"), ("Tax", "$0.00"), ("TOTAL", "$2,335.00")],
+    ["Work completed 2026-10-09. Payment due on insurer approval.", "Thank you for choosing Northgate Auto Body."],
+)
+document(
+    "s5_police_report.png", "Springfield Police Dept.", "Traffic Incident Report · Non-injury",
+    [("Report #", "SPD-TR-2026-119015"), ("Date / time", "2026-10-06, 18:40"), ("Location", "Elm St & 5th Ave signal"),
+     ("Vehicle 1", "2021 Honda City, KA-05-MN-4421 (A. Nair) - stationary at red"),
      ("Vehicle 2", "2017 Toyota Innova, KA-03-HJ-9902 (R. Menon)"), ("Officer", "Sgt. P. Kulkarni #4471")],
     [], [],
     ["Narrative: Vehicle 2 failed to stop and struck the rear of Vehicle 1 while it", "was waiting at a red signal. Rear bumper and right tail lamp of V1 damaged.",
@@ -144,8 +166,8 @@ samples = [
         "fields": {"claimant_name": "Ananya Rao", "claim_type": "auto", "claimed_amount": 2335,
                    "coverage_limit": 15000, "incident_date": "2026-10-06", "policy_start": "2024-03-01",
                    "prior_claims": 0, "date_filed": "2026-10-10",
-                   "description": "On 6 Oct around 6:40pm I was stopped at the red light at Elm St & 5th Ave when a Toyota Innova hit the back of my car. Rear bumper and right tail light are broken. The other driver admitted fault and police came to the spot. Got it repaired at Northgate Auto Body."},
-        "files": ["s1_repair_invoice.png", "s1_police_report.png"],
+                   "description": "On 6 Oct around 6:40pm I was stopped at the red light at Elm St & 5th Ave when a Mahindra Scorpio hit the back of my Corolla. Rear bumper and right tail light are broken. The other driver admitted fault and police came to the spot. Got it repaired at Northgate Auto Body."},
+        "files": ["s1_damage_rear.jpg", "s1_repair_invoice.png", "s1_police_report.png"],
     },
     {
         "label": "2 · Inflated repair invoice",
@@ -153,7 +175,7 @@ samples = [
                    "coverage_limit": 10000, "incident_date": "2026-10-01", "policy_start": "2025-11-20",
                    "prior_claims": 1, "date_filed": "2026-10-12",
                    "description": "Someone reversed into my car in a parking lot on 1 October and damaged the back of the car. They drove off. I had it fixed at QuickFix Motors and paid cash. Claiming the full repair cost."},
-        "files": ["s2_repair_invoice.png", "s2_estimate.png"],
+        "files": ["s2_damage_front.jpg", "s2_repair_invoice.png", "s2_estimate.png"],
     },
     {
         "label": "3 · Lost phone, brand-new policy",
@@ -169,7 +191,15 @@ samples = [
                    "coverage_limit": 25000, "incident_date": "2026-06-27", "policy_start": "2023-01-15",
                    "prior_claims": 0, "date_filed": "2026-10-14",
                    "description": "A flexible hose under the kitchen sink burst overnight on 27 June and flooded the kitchen. A plumber fixed it and dried everything out; cabinets and flooring had to be replaced. I was travelling for work after that so I'm only filing now."},
-        "files": ["s4_plumber_invoice.png"],
+        "files": ["s4_kitchen_water.jpg", "s4_plumber_invoice.png"],
+    },
+    {
+        "label": "5 · Photo of a different car",
+        "fields": {"claimant_name": "Arjun Nair", "claim_type": "auto", "claimed_amount": 2335,
+                   "coverage_limit": 15000, "incident_date": "2026-10-06", "policy_start": "2024-03-01",
+                   "prior_claims": 0, "date_filed": "2026-10-10",
+                   "description": "On 6 Oct around 6:40pm I was stopped at the red light at Elm St & 5th Ave when an SUV hit the back of my Honda City. Rear bumper and right tail light are broken. The other driver admitted fault and police came to the spot. Got it repaired at Northgate Auto Body."},
+        "files": ["s1_damage_rear.jpg", "s5_repair_invoice.png", "s5_police_report.png"],
     },
 ]
 (OUT / "samples.json").write_text(json.dumps(samples, indent=2, ensure_ascii=False), encoding="utf-8")

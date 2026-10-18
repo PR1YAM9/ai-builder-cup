@@ -162,6 +162,8 @@
   .stack .mono { font-size: 13px; color: var(--ink); }
 
   .closing { border-bottom: 0; }
+  .runs { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; padding-top: 28px; border-top: 1px solid var(--rule); }
+  .runs span { color: var(--muted); }
   .closing .wrap { display: flex; justify-content: space-between; align-items: end; gap: 40px; flex-wrap: wrap; }
   .closing h2 { margin: 0; }
 
@@ -193,7 +195,7 @@
       <h1>Read every document in a claim. Check them against each other.</h1>
       <p class="lede">ClaimGuard reviews the statement, photos, invoices and reports in every incoming claim, finds where they disagree, and gives your adjusters a risk assessment with the evidence behind it. It connects to your claims system through one API and runs inside your own cloud account.</p>
       <div class="actions">
-        <a class="btn primary" href="/app">Try the demo</a>
+        <a class="btn primary" href="/app?sample=2">See it catch a fraudulent claim</a>
         <a class="btn secondary" href="#integration">How it integrates</a>
       </div>
     </div>
@@ -350,11 +352,19 @@
   <div class="wrap">
     <div>
       <p class="eyebrow">See it on your own claims</p>
-      <h2>Four sample claims are loaded in the demo. The API reference is public.</h2>
+      <h2>Five sample claims are loaded in the demo. The API reference is public.</h2>
     </div>
     <div class="actions">
       <a class="btn primary" href="/app">Try the demo</a>
       <a class="btn secondary" href="/docs">Read the API reference</a>
+    </div>
+    <div class="runs">
+      <span>Run a sample claim directly:</span>
+      <a href="/app?sample=1">Consistent auto claim</a>
+      <a href="/app?sample=2">Inflated repair invoice</a>
+      <a href="/app?sample=3">Phone lost before purchase</a>
+      <a href="/app?sample=4">Late water damage report</a>
+      <a href="/app?sample=5">Photo of a different car</a>
     </div>
   </div>
 </section>
